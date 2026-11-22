@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SSC CGL 2027 Squad Planner</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            },
+            oneui: {
+              dark: '#000000',
+              cardDark: '#121215',
+              borderDark: '#24242c',
+              subtextDark: '#a1a1aa',
+              blue: '#3b82f6',
+              blueGlow: '#2563eb'
+            },
+            qa: '#3b82f6',
+            ra: '#8b5cf6',
+            eng: '#10b981',
+            gk: '#f59e0b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Hide scrollbars globally across all elements while maintaining touch/hand scrolling */
+    * {
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    .custom-scroll {
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
+</head>
+<body class="bg-[#F6F7FB] dark:bg-black text-slate-900 dark:text-white min-h-screen font-sans antialiased flex flex-col items-center justify-center p-0 md:p-6 transition-colors duration-300">
+
+  <!-- Mobile Container Frame -->
+  <div id="appContainer" class="w-full max-w-[460px] h-full md:h-[95vh] md:max-h-[920px] bg-[#F6F7FB] dark:bg-black md:rounded-[38px] shadow-2xl border border-slate-200/90 dark:border-[#24242c] flex flex-col overflow-hidden relative">
+
+    <!-- TOP HEADER BAR -->
+    <header class="bg-white/95 dark:bg-[#121215]/95 backdrop-blur-md px-4 py-3 border-b border-slate-200/80 dark:border-[#24242c] sticky top-0 z-30 flex items-center justify-between shadow-sm transition-colors">
+      <!-- Top Left: SSC CGL + 2027 Badge + Save Status -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-black text-[10px] leading-none text-center shadow-md shadow-emerald-600/25 shrink-0">
+          SSC<br>CGL
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center space-x-1.5">
+            <h1 class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SSC CGL</h1>
+            <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+              2027
+            </span>
+          </div>
+          <div class="flex items-center space-x-2 mt-0.5">
+            <span id="lastSavedStatus" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Saved</span>
+            </span>
+            <button onclick="openModeSelector()" id="modeBadgeBtn" class="flex items-center space-x-1 text-[9px] font-bold text-slate-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+              <span id="modeBadgeText">Select Track</span>
+              <i class="fa-solid fa-chevron-down text-[7px]"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Right: Sign In, Save, Sync & Theme Toggle -->
+      <div class="flex items-center space-x-1.5">
+        <button onclick="openEmailAuthModal()" id="emailAuthHeaderBtn" class="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-900/50 text-[11px] font-extrabold flex items-center space-x-1 active:scale-95 transition-transform" title="Sign In with Email">
+          <span id="emailAuthStatusDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+          <span id="emailAuthBtnText">Sign In</span>
+        </button>
+        <button onclick="manualSaveState()" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold flex items-center space-x-1 shadow-sm active:scale-95 transition-transform" title="Save Schedule">
+          <i class="fa-solid fa-floppy-disk text-[10px]"></i>
+          <span>Save</span>
+        </button>
+        <button onclick="syncSquadData()" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1f1f24] hover:bg-slate-200 dark:hover:bg-[#282830] text-slate-700 dark:text-zinc-200 border border-slate-200/80 dark:border-[#2b2b34] text-[11px] font-bold flex items-center space-x-1 active:scale-95 transition-transform" title="Sync">
+          <i class="fa-solid fa-arrows-rotate text-[10px] text-emerald-600 dark:text-emerald-400"></i>
+          <span>Sync</span>
+        </button>
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-[#1f1f24] hover:bg-slate-200 dark:hover:bg-[#282830] text-slate-600 dark:text-amber-400 flex items-center justify-center transition-all active:scale-95 border border-slate-200/60 dark:border-[#2b2b34]" title="Toggle Day/Night Mode">
+          <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- SQUAD MEMBER & STREAK BAR -->
+    <div class="px-3.5 pt-3 pb-1">
+      <div class="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#24242c] px-3 py-2 shadow-sm flex items-center justify-between gap-2">
+        <div class="flex items-center space-x-1.5" id="userPillContainer"></div>
+        <div class="flex items-center space-x-1.5">
+          <button onclick="openNicknameModal()" id="nicknamePillBtn" class="px-2 py-1 rounded-xl bg-slate-100 dark:bg-[#1a1a1e] text-slate-700 dark:text-zinc-300 text-[10px] font-bold flex items-center space-x-1 hover:bg-slate-200 dark:hover:bg-[#24242c]" title="Set Private Nickname">
+            <span id="nicknameActiveIndicator" class="hidden w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="activeUserFullname" class="max-w-[74px] truncate">Signed Out</span>
+            <i class="fa-solid fa-pen text-[8px] text-slate-400"></i>
+          </button>
+          <span class="px-2 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold flex items-center space-x-1 shrink-0">
+            <i class="fa-solid fa-fire text-amber-500 text-[9px]"></i>
+            <span>8 Days</span>
+          </span>
+          <span id="liveClockTime" class="px-2 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/70 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-extrabold tabular-nums shrink-0">
+            --:--:--
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION FLOATER -->
+    <div id="toastNotification" class="hidden absolute top-28 left-4 right-4 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold flex items-center justify-between border border-amber-300/30">
+      <div class="flex items-center space-x-2.5">
+        <i class="fa-solid fa-circle-exclamation text-lg text-amber-100"></i>
+        <span id="toastText">Minimum study slot duration must be 1 hour (60 minutes).</span>
+      </div>
+      <button onclick="dismissToast()" class="text-amber-100 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+
+    <!-- MAIN SCROLLABLE VIEW CONTAINER -->
+    <main id="mainContent" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 custom-scroll relative"></main>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <nav class="bg-white dark:bg-[#121215] border-t border-slate-200/90 dark:border-[#24242c] flex justify-around items-center py-2.5 px-3 z-30 shadow-lg transition-colors">
+      <button onclick="switchTab('schedule')" id="tabBtn-schedule" class="tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all">
+        <i class="fa-solid fa-calendar-days text-sm"></i>
+        <span class="text-xs font-extrabold">Schedule</span>
+      </button>
+      <button onclick="switchTab('status')" id="tabBtn-status" class="tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all">
+        <i class="fa-solid fa-chart-column text-sm"></i>
+        <span class="text-xs font-extrabold">Stats</span>
+      </button>
+      <button onclick="switchTab('chat')" id="tabBtn-chat" class="tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all relative">
+        <i class="fa-solid fa-comment-dots text-sm"></i>
+        <span class="text-xs font-extrabold">Chat</span>
+        <span id="chatDot" class="w-2 h-2 bg-emerald-500 rounded-full absolute top-1.5 right-2"></span>
+      </button>
+      <button onclick="switchTab('doubt')" id="tabBtn-doubt" class="tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all">
+        <i class="fa-solid fa-circle-question text-sm"></i>
+        <span class="text-xs font-extrabold">Doubt</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODAL: ADD STUDY TIME SLOT -->
+  <div id="addSlotModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#121215] w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-slate-200 dark:border-[#24242c] space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-[#24242c] pb-3">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-clock-plus text-blue-500"></i>
+          <span>Add Study Time Slot</span>
+        </h3>
+        <button onclick="closeAddSlotModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#1f1f24] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="addSlotForm" onsubmit="handleSlotSubmit(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Subject</label>
+            <select id="slotSubject" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+              <option value="QA">Quantitative (QA)</option>
+              <option value="RA">Reasoning (RA)</option>
+              <option value="EN">English (EN)</option>
+              <option value="GA">General Awareness (GA)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Slot Type</label>
+            <select id="slotCategory" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+              <option value="self">Self Practice</option>
+              <option value="class">Class / Lecture</option>
+              <option value="library">Library Session</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Start Time</label>
+            <input type="time" id="slotStart" required class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" value="09:00" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">End Time</label>
+            <input type="time" id="slotEnd" required class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" value="10:30" />
+          </div>
+        </div>
+        <div class="bg-blue-50 dark:bg-blue-950/40 rounded-2xl p-3 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-700 dark:text-blue-300 font-medium flex items-start space-x-2">
+          <i class="fa-solid fa-shield-halved text-blue-500 mt-0.5"></i>
+          <span>Rule: Minimum duration for any slot is <strong>60 minutes (1 hour)</strong>.</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Topic / Chapter Target</label>
+          <input type="text" id="slotTopic" required placeholder="e.g. Geometry Circle Theorems & DI" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="pt-2 flex space-x-3">
+          <button type="button" onclick="closeAddSlotModal()" class="flex-1 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-600 dark:text-zinc-300 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold rounded-2xl hover:opacity-95 shadow-md shadow-blue-500/20">Add Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG MOCK SCORE -->
+  <div id="addMockModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#121215] w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-slate-200 dark:border-[#24242c] space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-[#24242c] pb-3">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-trophy text-amber-500"></i>
+          <span>Log Mock Test Score</span>
+        </h3>
+        <button onclick="closeAddMockModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#1f1f24] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="addMockForm" onsubmit="handleMockSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Platform</label>
+          <select id="mockPlatform" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+            <option value="Testbook">Testbook</option>
+            <option value="Oliveboard">Oliveboard</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Mock Test Title</label>
+          <input type="text" id="mockName" required placeholder="e.g. Tier 1 Full Length Mock 08" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 mb-1">Score (/200)</label>
+            <input type="number" step="0.5" max="200" min="0" id="mockScore" required placeholder="154" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-2.5 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 mb-1">Percentile %</label>
+            <input type="number" step="0.1" max="100" min="0" id="mockPercentile" required placeholder="96.5" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-2.5 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 mb-1">Accuracy %</label>
+            <input type="number" step="0.1" max="100" min="0" id="mockAccuracy" required placeholder="89.0" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-2.5 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+        <div class="pt-2 flex space-x-3">
+          <button type="button" onclick="closeAddMockModal()" class="flex-1 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-600 dark:text-zinc-300 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold rounded-2xl hover:opacity-95 shadow-md shadow-blue-500/20">Save Mock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: POST DOUBT -->
+  <div id="addDoubtModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#121215] w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-slate-200 dark:border-[#24242c] space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-[#24242c] pb-3">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-circle-question text-blue-500"></i>
+          <span>Ask Squad Doubt</span>
+        </h3>
+        <button onclick="closeAddDoubtModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#1f1f24] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="addDoubtForm" onsubmit="handleDoubtSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Subject</label>
+          <select id="doubtSubject" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+            <option value="QA">Quantitative Aptitude (QA)</option>
+            <option value="RA">Reasoning Ability (RA)</option>
+            <option value="EN">English Comprehension (EN)</option>
+            <option value="GA">General Awareness (GA)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Question / Topic Title</label>
+          <input type="text" id="doubtTitle" required placeholder="e.g. Circle Chord Property Question" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Details / Options</label>
+          <textarea id="doubtDetail" rows="3" required placeholder="Describe where you are stuck..." class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Attach Question Image (Optional)</label>
+          <input type="file" id="doubtImageFile" accept="image/*" class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300" />
+        </div>
+        <div class="pt-2 flex space-x-3">
+          <button type="button" onclick="closeAddDoubtModal()" class="flex-1 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-600 dark:text-zinc-300 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold rounded-2xl hover:opacity-95 shadow-md shadow-blue-500/20">Post Doubt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SET PRIVATE NICKNAME -->
+  <div id="nicknameModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#121215] w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-slate-200 dark:border-[#24242c] space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-[#24242c] pb-3">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-user-secret text-blue-500"></i>
+          <span>Set Private Nickname</span>
+        </h3>
+        <button onclick="closeNicknameModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#1f1f24] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleNicknameSubmit(event)" class="space-y-4">
+        <div class="bg-slate-50 dark:bg-[#18181c] rounded-2xl p-3 border border-slate-200/70 dark:border-[#26262e] text-[11px] text-slate-600 dark:text-zinc-300 font-medium flex items-start space-x-2">
+          <i class="fa-solid fa-lock text-emerald-500 mt-0.5"></i>
+          <span>Real names stay hidden. Choose any nickname for <strong id="nicknameTargetCode">AJ</strong> across chat, leaderboard, and doubts.</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Your Nickname</label>
+          <input type="text" id="nicknameInput" maxlength="18" required placeholder="e.g. QuantWizard, NightOwl..." class="w-full bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl p-3 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="pt-1 flex space-x-2.5">
+          <button type="button" onclick="resetNickname()" class="px-3 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-500 dark:text-zinc-400 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Reset</button>
+          <button type="button" onclick="closeNicknameModal()" class="flex-1 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-600 dark:text-zinc-300 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold rounded-2xl hover:opacity-95 shadow-md shadow-blue-500/20">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CLOUD SYNC & SHARE ROOM -->
+  <div id="cloudSyncModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#121215] w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-slate-200 dark:border-[#24242c] space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-[#24242c] pb-3">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-500"></i>
+          <span>Live Cloud Sync</span>
+        </h3>
+        <button onclick="closeCloudSyncModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#1f1f24] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="bg-emerald-50/80 dark:bg-emerald-950/30 rounded-2xl p-3 border border-emerald-200/70 dark:border-emerald-900/40 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold">Server Status:</span>
+          <span id="cloudStatusIndicator" class="font-black">Connecting...</span>
+        </div>
+        <p class="text-[10px] opacity-90">Use the same <strong>Room Code</strong> on both AJ & NR devices to sync schedules, mocks, chat, and doubts in real time.</p>
+      </div>
+      <form onsubmit="handleRoomCodeSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">Shared Squad Room Code</label>
+          <div class="flex space-x-2">
+            <input type="text" id="roomCodeInput" maxlength="24" required placeholder="e.g. ssccgl-aj-nr" class="flex-1 bg-slate-100 dark:bg-[#1a1a1e] border border-transparent dark:border-[#2b2b34] rounded-2xl px-3.5 py-2.5 text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider focus:ring-2 focus:ring-emerald-500" />
+            <button type="button" onclick="copyShareRoomLink()" class="px-3.5 py-2.5 bg-slate-100 dark:bg-[#1f1f24] hover:bg-slate-200 dark:hover:bg-[#282830] text-slate-700 dark:text-zinc-200 text-xs font-extrabold rounded-2xl border border-slate-200/70 dark:border-[#2b2b34] flex items-center space-x-1">
+              <i class="fa-solid fa-link text-blue-500"></i>
+              <span>Copy Link</span>
+            </button>
+          </div>
+        </div>
+        <div class="pt-1 flex space-x-2.5">
+          <button type="button" onclick="forcePushCloudNow()" class="px-3.5 py-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-900/40 text-xs font-extrabold rounded-2xl hover:bg-emerald-100 transition-colors">Push Now</button>
+          <button type="button" onclick="closeCloudSyncModal()" class="flex-1 py-3 bg-slate-100 dark:bg-[#1f1f24] text-slate-600 dark:text-zinc-300 text-xs font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-[#282830] transition-colors">Close</button>
+          <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-2xl shadow-md shadow-emerald-600/20">Join Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EMAIL SIGN IN / CREATE ACCOUNT -->
+  <div id="emailAuthModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-[#121622] text-white w-full max-w-sm rounded-[28px] p-6 shadow-2xl border border-white/10 space-y-5 relative">
+      <button onclick="closeEmailAuthModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center"><i class="fa-solid fa-xmark text-xs"></i></button>
+
+      <div id="signedInAccountView" class="hidden space-y-4 pt-2">
+        <div class="text-center space-y-1">
+          <h3 class="text-xl font-extrabold tracking-tight text-white">Account Active</h3>
+          <p class="text-xs text-zinc-400">Synced with your squad profile</p>
+        </div>
+        <div class="bg-emerald-950/40 rounded-2xl p-3.5 border border-emerald-500/30 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400">Signed In</span>
+            <span id="signedInRoleBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">AJ</span>
+          </div>
+          <p id="signedInEmailLabel" class="text-xs font-extrabold text-white truncate">user@example.com</p>
+          <p class="text-[10px] text-zinc-400">Your nickname is active and visible across devices.</p>
+        </div>
+        <div class="flex space-x-2.5">
+          <button type="button" onclick="handleEmailSignOut()" class="flex-1 py-3 bg-rose-500/15 text-rose-400 border border-rose-500/30 text-xs font-extrabold rounded-2xl hover:bg-rose-500/25 transition-colors">Sign Out</button>
+          <button type="button" onclick="closeEmailAuthModal()" class="flex-1 py-3 bg-white/10 text-white text-xs font-extrabold rounded-2xl hover:bg-white/15">Done</button>
+        </div>
+      </div>
+
+      <form id="emailAuthForm" onsubmit="handleEmailAuthSubmit(event)" class="space-y-4">
+        <div class="text-center pt-1">
+          <h3 id="welcomeAuthHeading" class="text-2xl font-extrabold tracking-tight text-white">Welcome Back</h3>
+        </div>
+
+        <!-- Prominent Google Sign-In Pill Button -->
+        <button type="button" onclick="quickProviderAuth('google')" class="w-full py-3 px-4 rounded-2xl bg-white hover:bg-zinc-100 active:scale-[0.99] transition-all flex items-center justify-center space-x-3 shadow-md">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.1.74-2.51 1.18-4.22 1.18-3.25 0-6-2.19-6.98-5.14H1.01v3.14C3.05 21.2 7.24 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.02 14.03c-.25-.74-.39-1.54-.39-2.36 0-.82.14-1.62.39-2.36V6.17H1.01C.37 7.45 0 8.89 0 10.42s.37 2.97 1.01 4.25l4.01-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.79 0 3.41.62 4.68 1.82l3.51-3.51C18.07 1.19 15.3 0 12 0 7.24 0 3.05 2.8 1.01 6.83l4.01 3.14c.98-2.95 3.73-5.22 6.98-5.22Z"/>
+          </svg>
+          <span class="text-xs font-extrabold text-zinc-900">Sign in with Google</span>
+        </button>
+
+        <!-- OR Divider -->
+        <div class="flex items-center space-x-3">
+          <div class="h-px flex-1 bg-white/15"></div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">OR</span>
+          <div class="h-px flex-1 bg-white/15"></div>
+        </div>
+
+        <!-- Username / Email Field -->
+        <div>
+          <input type="text" id="authEmailInput" required placeholder="Username or Email (e.g. name@gmail.com)" class="w-full bg-[#2a2d36] border border-white/10 rounded-2xl px-4 py-3 text-xs font-semibold text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- Password Field with Eye Toggle -->
+        <div class="relative">
+          <input type="password" id="authPasswordInput" minlength="6" required placeholder="Password (min 6 chars)" class="w-full bg-[#2a2d36] border border-white/10 rounded-2xl px-4 py-3 pr-10 text-xs font-semibold text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button type="button" onclick="toggleAuthPasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+            <i id="authPassEyeIcon" class="fa-regular fa-eye-slash text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between text-[11px]">
+          <label class="flex items-center space-x-2 cursor-pointer select-none text-zinc-300 font-semibold">
+            <input type="checkbox" id="authRememberMe" checked class="w-3.5 h-3.5 rounded border-amber-400/60 bg-transparent text-amber-400 focus:ring-0" />
+            <span>Remember Me</span>
+          </label>
+          <button type="button" onclick="handleForgotPasswordClick()" class="font-semibold text-[#e6b35c] hover:underline">Forgot Password?</button>
+        </div>
+
+        <p id="emailAuthErrorText" class="hidden text-[11px] font-bold text-rose-400 text-center"></p>
+
+        <!-- Gold-to-Blue Gradient Sign In / Create Account Button -->
+        <button type="submit" id="emailAuthSubmitBtn" class="w-full py-3 rounded-2xl text-xs font-extrabold text-zinc-950 shadow-lg active:scale-[0.99] transition-all" style="background: linear-gradient(90deg, #e7c27d 0%, #7ea7d8 52%, #0077ff 100%);">
+          Sign In
+        </button>
+
+        <div class="text-center pt-0.5">
+          <button type="button" id="toggleAuthRegisterLink" onclick="toggleSignInRegisterMode()" class="text-[11px] font-semibold text-zinc-400 hover:text-white">
+            New user? <span class="text-blue-400 font-bold">Create Account</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: STUDY MODE ONBOARDING GATE -->
+  <div id="welcomeScreen" class="hidden fixed inset-0 z-50 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+    <div id="onboardingStep1" class="w-full max-w-sm space-y-8">
+      <div class="space-y-2">
+        <span class="bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 text-[11px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-sm">SSC CGL 2027</span>
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight pt-1">Select Preparation Track</h2>
+      </div>
+      <div class="grid grid-cols-2 gap-3.5">
+        <button onclick="selectStudyMode('self')" class="group relative flex flex-col items-center justify-center p-5 rounded-[28px] bg-slate-50 dark:bg-[#121215] border-2 border-slate-200 dark:border-[#24242c] hover:border-blue-500 shadow-lg hover:shadow-2xl transition-all duration-300 active:scale-95">
+          <i class="fa-solid fa-book-open-reader text-3xl text-blue-600 dark:text-blue-400 mb-3"></i>
+          <span class="text-sm font-extrabold text-slate-900 dark:text-white">Self Study</span>
+        </button>
+        <button onclick="selectStudyMode('coaching')" class="group relative flex flex-col items-center justify-center p-5 rounded-[28px] bg-slate-50 dark:bg-[#121215] border-2 border-slate-200 dark:border-[#24242c] hover:border-indigo-500 shadow-lg hover:shadow-2xl transition-all duration-300 active:scale-95">
+          <i class="fa-solid fa-graduation-cap text-3xl text-indigo-600 dark:text-indigo-400 mb-3"></i>
+          <span class="text-sm font-extrabold text-slate-900 dark:text-white">Coaching Centre</span>
+        </button>
+        <button onclick="selectStudyMode('library')" class="col-span-2 group relative flex flex-row items-center justify-center space-x-4 p-5 rounded-[28px] bg-slate-50 dark:bg-[#121215] border-2 border-slate-200 dark:border-[#24242c] hover:border-emerald-500 shadow-lg hover:shadow-2xl transition-all duration-300 active:scale-95">
+          <i class="fa-solid fa-landmark text-3xl text-emerald-600 dark:text-emerald-400"></i>
+          <div class="text-left">
+            <span class="text-base font-extrabold text-slate-900 dark:text-white block">Library</span>
+            <span class="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">Nearest State Govt or Central Library</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div id="onboardingStep2" class="hidden w-full max-w-sm text-left space-y-5 my-auto py-4">
+      <div class="flex items-center justify-between">
+        <button onclick="backToStep1()" class="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-[#18181c] text-slate-600 dark:text-zinc-300 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-3 py-1 rounded-full">Self Study Setup</span>
+      </div>
+      <form id="selfStudyResourcesForm" onsubmit="saveSelfStudyResources(event)" class="space-y-4">
+        <div class="bg-slate-50 dark:bg-[#121215] p-4 rounded-[24px] border border-slate-200/80 dark:border-[#24242c] space-y-2">
+          <div class="text-xs font-extrabold text-red-600 dark:text-red-400">4 YouTube Channels</div>
+          <input type="text" id="ytCh1" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="ytCh2" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="ytCh3" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="ytCh4" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div class="bg-slate-50 dark:bg-[#121215] p-4 rounded-[24px] border border-slate-200/80 dark:border-[#24242c] space-y-2">
+          <div class="text-xs font-extrabold text-sky-600 dark:text-sky-400">4 Telegram Channels</div>
+          <input type="text" id="tgCh1" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="tgCh2" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="tgCh3" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+          <input type="text" id="tgCh4" required class="w-full bg-white dark:bg-[#18181c] rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold rounded-2xl shadow-lg">Save Channels & Open Planner</button>
+      </form>
+    </div>
+
+    <div id="onboardingStep3" class="hidden w-full max-w-sm text-left space-y-4 my-auto py-4">
+      <div class="flex items-center justify-between">
+        <button onclick="backToStep1()" class="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-[#18181c] text-slate-600 dark:text-zinc-300 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full">Nearest Govt Library</span>
+      </div>
+      <div class="bg-emerald-50/70 dark:bg-emerald-950/30 p-3.5 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center justify-between gap-2">
+        <p id="gpsStatusText" class="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold leading-snug">Tap Detect GPS or enter your city below to find nearest libraries.</p>
+        <button type="button" onclick="detectNearestLibraries()" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-[11px] font-extrabold shrink-0">Detect GPS</button>
+      </div>
+      <div>
+        <input type="text" id="libraryCitySearchInput" oninput="filterLibrariesByCity(this.value)" placeholder="Search by city, district, or state (e.g. Kozhikode, Kochi, Delhi)..." class="w-full bg-slate-100 dark:bg-[#18181c] border border-slate-200/70 dark:border-[#26262e] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+      </div>
+      <div id="govtLibraryList" class="space-y-2 max-h-56 overflow-y-auto"></div>
+      <form onsubmit="saveCustomLibrary(event)" class="flex space-x-2 pt-1">
+        <input type="text" id="customLibraryInput" placeholder="Or enter your Govt Library name..." class="flex-1 bg-slate-100 dark:bg-[#18181c] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white" />
+        <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold">Select</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase Live Cloud Sync Module -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    let db = null;
+    let auth = null;
+    let unsubscribeRoom = null;
+    let isRemoteApplying = false;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramRoom = urlParams.get('room');
+    let roomCode = (paramRoom || localStorage.getItem('ssc_roomCode') || 'SSCCGL-AJ-NR').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+    if (!roomCode) roomCode = 'SSCCGL-AJ-NR';
+    localStorage.setItem('ssc_roomCode', roomCode);
+
+    function updateCloudBadge(text, ok = true) {
+      const ind = document.getElementById('cloudStatusIndicator');
+      if (ind) {
+        ind.textContent = text;
+        ind.className = ok ? 'font-black text-emerald-600 dark:text-emerald-400' : 'font-black text-amber-600 dark:text-amber-400';
+      }
+    }
+
+    async function pushToCloud(payload) {
+      if (!db || isRemoteApplying) return;
+      try {
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ssc-cgl-2027-squad';
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
+        await setDoc(roomRef, { ...payload, updatedAt: Date.now() }, { merge: true });
+        updateCloudBadge(`Connected (${roomCode})`, true);
+      } catch (err) {
+        updateCloudBadge('Local Backup Mode', false);
+      }
+    }
+
+    function subscribeToRoom(targetRoom) {
+      if (!db) return;
+      if (unsubscribeRoom) unsubscribeRoom();
+      roomCode = targetRoom;
+      localStorage.setItem('ssc_roomCode', roomCode);
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'ssc-cgl-2027-squad';
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
+
+      unsubscribeRoom = onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) {
+          if (typeof window.collectFullState === 'function') {
+            pushToCloud(window.collectFullState());
+          }
+          return;
+        }
+        const data = snap.data();
+        if (typeof window.applyCloudState === 'function') {
+          isRemoteApplying = true;
+          try {
+            window.applyCloudState(data);
+          } finally {
+            isRemoteApplying = false;
+          }
+        }
+        updateCloudBadge(`Live Synced (${roomCode})`, true);
+      }, () => {
+        updateCloudBadge('Local Backup Mode', false);
+      });
+    }
+
+    window.cloudSyncBridge = {
+      push: pushToCloud,
+      getRoomCode: () => roomCode,
+      signInGoogle: async () => {
+        if (!auth) throw new Error('Firebase Auth unavailable');
+        const provider = new GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        provider.setCustomParameters({ prompt: 'select_account' });
+        try {
+          return await signInWithPopup(auth, provider);
+        } catch (err) {
+          if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request')) {
+            await signInWithRedirect(auth, provider);
+            return null;
+          }
+          throw err;
+        }
+      },
+      signInEmail: async (email, password, isRegister) => {
+        if (!auth) throw new Error('Firebase Auth unavailable');
+        if (isRegister) {
+          return await createUserWithEmailAndPassword(auth, email, password);
+        }
+        return await signInWithEmailAndPassword(auth, email, password);
+      },
+      resetPassword: async (email) => {
+        if (!auth) throw new Error('Firebase Auth unavailable');
+        await sendPasswordResetEmail(auth, email);
+      },
+      signOutEmail: async () => {
+        if (auth) {
+          await signOut(auth);
+          await signInAnonymously(auth);
+        }
+      },
+      switchRoom: (newRoom) => {
+        const clean = (newRoom || 'SSCCGL-AJ-NR').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        if (!clean) return;
+        subscribeToRoom(clean);
+        if (typeof window.collectFullState === 'function') {
+          pushToCloud(window.collectFullState());
+        }
+      }
+    };
+
+    (async () => {
+      try {
+        const defaultFirebaseConfig = {
+          apiKey: "AIzaSyDDWIWUW-V--SBJ7tpqyAQV6CFPwGQhwgg",
+          authDomain: "ssccgl-ba9ca.firebaseapp.com",
+          projectId: "ssccgl-ba9ca",
+          storageBucket: "ssccgl-ba9ca.firebasestorage.app",
+          messagingSenderId: "282171117353",
+          appId: "1:282171117353:web:949c7d89fdc960b2693138",
+          measurementId: "G-99FMXB838G"
+        };
+        const cfg = (typeof __firebase_config !== 'undefined' && __firebase_config)
+          ? JSON.parse(__firebase_config)
+          : defaultFirebaseConfig;
+        const app = initializeApp(cfg);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        onAuthStateChanged(auth, (user) => {
+          if (user && !user.isAnonymous && user.email && typeof window.completeExternalGoogleLogin === 'function') {
+            window.completeExternalGoogleLogin(user.email, user.displayName || '');
+          }
+        });
+        try {
+          const redirCred = await getRedirectResult(auth);
+          if (redirCred && redirCred.user && redirCred.user.email && typeof window.completeExternalGoogleLogin === 'function') {
+            window.completeExternalGoogleLogin(redirCred.user.email, redirCred.user.displayName || '');
+          }
+        } catch (e) {}
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+        subscribeToRoom(roomCode);
+      } catch (e) {
+        updateCloudBadge('Offline / Local Mode', false);
+      }
+    })();
+  </script>
+
+  <script>
+    function safeGetStorage(key, fallback = null) {
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? val : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function safeSetStorage(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {}
+    }
+
+    function safeGetJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    const USERS = ['AJ', 'NR'];
+    const USER_META = {
+      AJ: { defaultName: 'Aspirant AJ', color: 'bg-emerald-600' },
+      NR: { defaultName: 'Aspirant NR', color: 'bg-blue-600' }
+    };
+
+    const SUBJECT_CONFIG = {
+      GA: { name: 'General Awareness', short: 'GA', dot: 'bg-amber-500', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300' },
+      QA: { name: 'Quantitative Aptitude', short: 'QA', dot: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300' },
+      EN: { name: 'English Comprehension', short: 'EN', dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' },
+      RA: { name: 'Reasoning Ability', short: 'RA', dot: 'bg-violet-500', badge: 'bg-violet-100 text-violet-800 dark:bg-violet-950/70 dark:text-violet-300' }
+    };
+
+    const GOVT_LIBRARIES = [
+      { id: 'kozhikode-state', name: 'State Public Library & Research Centre', city: 'Kozhikode, Kerala', type: 'State Govt Library', hours: '08:00 AM - 08:00 PM', lat: 11.2588, lon: 75.7804 },
+      { id: 'kozhikode-district', name: 'District Library Council Reading Room', city: 'Kozhikode, Kerala', type: 'District Govt Library', hours: '09:00 AM - 07:00 PM', lat: 11.2520, lon: 75.7780 },
+      { id: 'ernakulam-public', name: 'Ernakulam Public Library', city: 'Kochi, Kerala', type: 'Public Govt Library', hours: '08:30 AM - 08:00 PM', lat: 9.9816, lon: 76.2830 },
+      { id: 'thrissur-public', name: 'Thrissur Public Library', city: 'Thrissur, Kerala', type: 'District Govt Library', hours: '09:00 AM - 07:30 PM', lat: 10.5276, lon: 76.2144 },
+      { id: 'kannur-district', name: 'District Central Library Kannur', city: 'Kannur, Kerala', type: 'District Govt Library', hours: '09:00 AM - 07:00 PM', lat: 11.8745, lon: 75.3704 },
+      { id: 'tvm-central', name: 'State Central Library (Trivandrum)', city: 'Thiruvananthapuram, Kerala', type: 'State Central Library', hours: '08:00 AM - 08:00 PM', lat: 8.5048, lon: 76.9515 },
+      { id: 'bengaluru-state', name: 'State Central Library (Cubbon Park)', city: 'Bengaluru, Karnataka', type: 'State Central Library', hours: '08:30 AM - 07:30 PM', lat: 12.9763, lon: 77.5929 },
+      { id: 'chennai-connemara', name: 'Connemara Public Library', city: 'Chennai, Tamil Nadu', type: 'State Central Library', hours: '09:00 AM - 07:30 PM', lat: 13.0694, lon: 80.2565 },
+      { id: 'mumbai-asiatic', name: 'State Central Library (Town Hall)', city: 'Mumbai, Maharashtra', type: 'State Central Library', hours: '09:00 AM - 07:00 PM', lat: 18.9322, lon: 72.8347 },
+      { id: 'delhi-public', name: 'Delhi Public Library (Central)', city: 'New Delhi', type: 'Central Govt Library', hours: '09:00 AM - 07:00 PM', lat: 28.6619, lon: 77.2274 }
+    ];
+
+    const DEFAULT_SCHEDULES = {
+      AJ: [
+        { id: 101, subject: 'GA', start: '06:00', end: '07:30', topic: 'Current Affairs + Static GK Revision', done: false, type: 'self' },
+        { id: 102, subject: 'QA', start: '08:00', end: '09:30', topic: 'Percentage & Ratio 40 PYQ Drill', done: false, type: 'self' },
+        { id: 103, subject: 'EN', start: '10:00', end: '11:30', topic: 'Editorial Vocab + Cloze Test Practice', done: false, type: 'self' },
+        { id: 104, subject: 'RA', start: '14:00', end: '15:30', topic: '2 Sectional Sets + Syllogism & Coding', done: false, type: 'self' },
+        { id: 105, subject: 'QA', start: '16:00', end: '17:30', topic: 'Geometry & Trigonometry Concept Notes', done: false, type: 'self' },
+        { id: 106, subject: 'EN', start: '19:00', end: '20:30', topic: 'Grammar Error Spotting + Active/Passive', done: false, type: 'self' }
+      ],
+      NR: [
+        { id: 201, subject: 'QA', start: '07:00', end: '09:00', topic: 'Arithmetic Speed Maths & DI Sets', done: true, type: 'self' },
+        { id: 202, subject: 'EN', start: '10:00', end: '11:30', topic: 'Blackbook Idioms & One Word Substitution', done: false, type: 'self' },
+        { id: 203, subject: 'GA', start: '15:00', end: '16:30', topic: 'Modern History & Polity Articles', done: false, type: 'self' },
+        { id: 204, subject: 'RA', start: '18:00', end: '19:30', topic: 'Number Series & Seating Arrangement', done: false, type: 'self' }
+      ]
+    };
+
+    const DEFAULT_MOCKS = [
+      { id: 1, user: 'AJ', platform: 'Testbook', name: 'Tier 1 Full Length Mock #04', score: 156.5, percentile: 96.4, accuracy: 90.2, date: 'Today' },
+      { id: 2, user: 'NR', platform: 'Oliveboard', name: 'All India Live Mock #07', score: 152.0, percentile: 95.1, accuracy: 88.5, date: 'Yesterday' }
+    ];
+
+    const DEFAULT_CHATS = [
+      { id: 1, user: 'NR', text: 'Completed morning Quant PYQ drill! Ready for evening live mock.', time: '09:12 AM' },
+      { id: 2, user: 'AJ', text: 'Nice! Let us compare Oliveboard percentiles after 8 PM.', time: '09:18 AM' }
+    ];
+
+    const DEFAULT_DOUBTS = [
+      {
+        id: 1,
+        user: 'NR',
+        subject: 'QA',
+        title: 'Shortest trick for cyclic quadrilateral angle sum?',
+        detail: 'In a cyclic quadrilateral ABCD, if exterior angle at C is 115 degrees, what is angle A?',
+        img: '',
+        solved: true,
+        solvedBy: 'AJ',
+        replies: [{ user: 'AJ', text: 'Exterior angle of a cyclic quadrilateral equals the interior opposite angle, so Angle A = 115 degrees!' }]
+      }
+    ];
+
+    let activeUser = safeGetStorage('ssc_activeUser', 'AJ');
+    if (!USERS.includes(activeUser)) activeUser = 'AJ';
+    let currentTab = 'schedule';
+    let statusSubTab = 'hours';
+    let mockPlatformFilter = 'ALL';
+    let doubtFilter = 'ALL';
+    let selectedDateStr = '2026-11-22';
+    let calendarMonthIndex = 10; // 0 = Jan 2026 ... 23 = Dec 2027
+
+    let nicknames = safeGetJSON('ssc_nicknames', { AJ: 'Aspirant AJ', NR: 'Aspirant NR' });
+    let schedules = safeGetJSON('ssc_schedules', JSON.parse(JSON.stringify(DEFAULT_SCHEDULES)));
+    let schedulesByDate = safeGetJSON('ssc_schedulesByDate', {});
+    let mocks = safeGetJSON('ssc_mocks', JSON.parse(JSON.stringify(DEFAULT_MOCKS)));
+    let chats = safeGetJSON('ssc_chats', JSON.parse(JSON.stringify(DEFAULT_CHATS)));
+    let doubts = safeGetJSON('ssc_doubts', JSON.parse(JSON.stringify(DEFAULT_DOUBTS)));
+    let breakDays = safeGetJSON('ssc_breakDays', { AJ: false, NR: false });
+    let breakDaysByDate = safeGetJSON('ssc_breakDaysByDate', {});
+    let studyMode = safeGetStorage('ssc_studyMode', '');
+    let selfResources = safeGetJSON('ssc_selfResources', {
+      yt: ['RBE Revolution', 'Gagan Pratap Maths', 'Rani Mam English', 'Parmar SSC'],
+      tg: ['@rbe_updates', '@gaganpratapmaths', '@englishwithranimam', '@parmarssc']
+    });
+    let selectedLibrary = safeGetJSON('ssc_selectedLibrary', GOVT_LIBRARIES[0]);
+    let emailAccount = safeGetJSON('ssc_emailAccount', null);
+    let emailAccountsBySlot = safeGetJSON('ssc_emailAccountsBySlot', {});
+    let savedNicknamesByEmail = safeGetJSON('ssc_savedNicknamesByEmail', {});
+    let emailAuthMode = 'signin';
+    let screenTimeData = safeGetJSON('ssc_screenTimeData', {
+      AJ: { mobileMins: 145, laptopMins: 210, appSecs: 0, mobileIp: '', laptopIp: '', connected: false, lastPing: '' },
+      NR: { mobileMins: 130, laptopMins: 195, appSecs: 0, mobileIp: '', laptopIp: '', connected: false, lastPing: '' }
+    });
+
+    function toggleAuthPasswordVisibility() {
+      const inp = document.getElementById('authPasswordInput');
+      const icon = document.getElementById('authPassEyeIcon');
+      if (!inp || !icon) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-regular fa-eye text-xs';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-regular fa-eye-slash text-xs';
+      }
+    }
+
+    function toggleSignInRegisterMode() {
+      const nextMode = emailAuthMode === 'signin' ? 'register' : 'signin';
+      setEmailAuthMode(nextMode);
+    }
+
+    async function handleForgotPasswordClick() {
+      const raw = (document.getElementById('authEmailInput')?.value || '').trim();
+      const errEl = document.getElementById('emailAuthErrorText');
+      if (!raw || !raw.includes('@')) {
+        if (errEl) {
+          errEl.textContent = 'Enter your registered email address above to receive a password reset email.';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+      if (!/^https?:$/i.test(window.location.protocol)) {
+        if (errEl) {
+          errEl.textContent = 'Open your hosted website (https://iamayooj.github.io/ssc/) to send a password reset email.';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+      try {
+        if (window.cloudSyncBridge && typeof window.cloudSyncBridge.resetPassword === 'function') {
+          await window.cloudSyncBridge.resetPassword(raw);
+          if (errEl) errEl.classList.add('hidden');
+          showToast(`Password reset email sent to ${raw}`);
+        }
+      } catch (e) {
+        if (errEl) {
+          errEl.textContent = e && e.message ? e.message : 'Could not send password reset email.';
+          errEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    function isUserSignedIn(code = activeUser) {
+      return !!(emailAccountsBySlot && emailAccountsBySlot[code] && emailAccountsBySlot[code].email);
+    }
+
+    function getDisplayName(code) {
+      if (!isUserSignedIn(code)) {
+        return USER_META[code] ? USER_META[code].defaultName : code;
+      }
+      const acctEmail = (emailAccountsBySlot[code]?.email || '').toLowerCase();
+      const emailNick = acctEmail && savedNicknamesByEmail[acctEmail] ? savedNicknamesByEmail[acctEmail].trim() : '';
+      if (emailNick) return emailNick;
+      return (nicknames && nicknames[code] && nicknames[code].trim()) ? nicknames[code].trim() : (USER_META[code] ? USER_META[code].defaultName : code);
+    }
+
+    function timeToMins(t) {
+      if (!t || !t.includes(':')) return 0;
+      const [h, m] = t.split(':').map(Number);
+      return (h * 60) + m;
+    }
+
+    function formatTime12(t) {
+      if (!t || !t.includes(':')) return t || '';
+      let [h, m] = t.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+
+    function getSlotDurationMins(slot) {
+      let diff = timeToMins(slot.end) - timeToMins(slot.start);
+      if (diff <= 0) diff += 24 * 60;
+      return diff;
+    }
+
+    function isSlotLiveNow(slot) {
+      const now = new Date();
+      const curMins = now.getHours() * 60 + now.getMinutes();
+      const s = timeToMins(slot.start);
+      let e = timeToMins(slot.end);
+      if (e <= s) e += 24 * 60;
+      return curMins >= s && curMins < e;
+    }
+
+    function formatSecsToHMS(secs) {
+      const s = Math.max(0, Math.floor(secs || 0));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const txt = document.getElementById('toastText');
+      if (!toast || !txt) return;
+      txt.textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3200);
+    }
+
+    function dismissToast() {
+      const toast = document.getElementById('toastNotification');
+      if (toast) toast.classList.add('hidden');
+    }
+
+    window.collectFullState = function () {
+      return {
+        schedules,
+        schedulesByDate,
+        mocks,
+        chats,
+        doubts,
+        nicknames,
+        breakDays,
+        breakDaysByDate,
+        screenTimeData
+      };
+    };
+
+    window.applyCloudState = function (data) {
+      if (!data) return;
+      if (data.schedules) { schedules = data.schedules; safeSetStorage('ssc_schedules', JSON.stringify(schedules)); }
+      if (data.schedulesByDate) { schedulesByDate = data.schedulesByDate; safeSetStorage('ssc_schedulesByDate', JSON.stringify(schedulesByDate)); }
+      if (data.mocks) { mocks = data.mocks; safeSetStorage('ssc_mocks', JSON.stringify(mocks)); }
+      if (data.chats) { chats = data.chats; safeSetStorage('ssc_chats', JSON.stringify(chats)); }
+      if (data.doubts) { doubts = data.doubts; safeSetStorage('ssc_doubts', JSON.stringify(doubts)); }
+      if (data.nicknames) { nicknames = data.nicknames; safeSetStorage('ssc_nicknames', JSON.stringify(nicknames)); }
+      if (data.breakDays) { breakDays = data.breakDays; safeSetStorage('ssc_breakDays', JSON.stringify(breakDays)); }
+      if (data.breakDaysByDate) { breakDaysByDate = data.breakDaysByDate; safeSetStorage('ssc_breakDaysByDate', JSON.stringify(breakDaysByDate)); }
+      if (data.screenTimeData) { screenTimeData = data.screenTimeData; safeSetStorage('ssc_screenTimeData', JSON.stringify(screenTimeData)); }
+      renderUserPills();
+      renderCurrentView();
+    };
+
+    function persistAllAndSync() {
+      safeSetStorage('ssc_schedules', JSON.stringify(schedules));
+      safeSetStorage('ssc_schedulesByDate', JSON.stringify(schedulesByDate));
+      safeSetStorage('ssc_mocks', JSON.stringify(mocks));
+      safeSetStorage('ssc_chats', JSON.stringify(chats));
+      safeSetStorage('ssc_doubts', JSON.stringify(doubts));
+      safeSetStorage('ssc_nicknames', JSON.stringify(nicknames));
+      safeSetStorage('ssc_breakDays', JSON.stringify(breakDays));
+      safeSetStorage('ssc_breakDaysByDate', JSON.stringify(breakDaysByDate));
+      safeSetStorage('ssc_screenTimeData', JSON.stringify(screenTimeData));
+      const savedEl = document.getElementById('lastSavedStatus');
+      if (savedEl) {
+        savedEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Saved</span>`;
+      }
+      if (window.cloudSyncBridge && typeof window.cloudSyncBridge.push === 'function') {
+        window.cloudSyncBridge.push(window.collectFullState());
+      }
+    }
+
+    function manualSaveState() {
+      persistAllAndSync();
+      showToast('All schedules & stats saved!');
+    }
+
+    function syncSquadData() {
+      const inp = document.getElementById('roomCodeInput');
+      if (inp && window.cloudSyncBridge) inp.value = window.cloudSyncBridge.getRoomCode();
+      document.getElementById('cloudSyncModal').classList.remove('hidden');
+    }
+
+    function closeCloudSyncModal() {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    }
+
+    function handleRoomCodeSubmit(e) {
+      e.preventDefault();
+      const val = document.getElementById('roomCodeInput').value.trim();
+      if (val && window.cloudSyncBridge) {
+        window.cloudSyncBridge.switchRoom(val);
+        showToast(`Joined room ${val.toUpperCase()}`);
+        closeCloudSyncModal();
+      }
+    }
+
+    function copyShareRoomLink() {
+      const code = window.cloudSyncBridge ? window.cloudSyncBridge.getRoomCode() : 'SSCCGL-AJ-NR';
+      const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(code)}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => showToast('Room link copied! Share with NR.')).catch(() => showToast(`Room Code: ${code}`));
+      } else {
+        showToast(`Room Code: ${code}`);
+      }
+    }
+
+    function forcePushCloudNow() {
+      persistAllAndSync();
+      showToast('Pushed latest data to cloud!');
+    }
+
+    function initTheme() {
+      const savedTheme = safeGetStorage('ssc_theme', 'dark');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('themeIcon').className = 'fa-solid fa-sun text-xs';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('themeIcon').className = 'fa-solid fa-moon text-xs';
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      safeSetStorage('ssc_theme', isDark ? 'dark' : 'light');
+      document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun text-xs' : 'fa-solid fa-moon text-xs';
+    }
+
+    function startLiveClock() {
+      const update = () => {
+        const el = document.getElementById('liveClockTime');
+        if (el) {
+          const now = new Date();
+          el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+      };
+      update();
+      setInterval(update, 1000);
+    }
+
+    function startAppUsageTracker() {
+      setInterval(() => {
+        if (!document.hidden && screenTimeData[activeUser]) {
+          screenTimeData[activeUser].appSecs = (screenTimeData[activeUser].appSecs || 0) + 1;
+          const liveAppEl = document.getElementById('liveAppSessionDisplay');
+          if (liveAppEl) liveAppEl.textContent = formatSecsToHMS(screenTimeData[activeUser].appSecs);
+          if (screenTimeData[activeUser].appSecs % 15 === 0) {
+            safeSetStorage('ssc_screenTimeData', JSON.stringify(screenTimeData));
+          }
+        }
+      }, 1000);
+    }
+
+    function renderUserPills() {
+      const container = document.getElementById('userPillContainer');
+      if (!container) return;
+      container.innerHTML = USERS.map(u => {
+        const isActive = u === activeUser;
+        const signedIn = isUserSignedIn(u);
+        return `
+          <button onclick="switchActiveUser('${u}')" class="px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 ${isActive ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-[#1a1a1e] text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-[#24242c]'}">
+            <span class="w-1.5 h-1.5 rounded-full ${signedIn ? (isActive ? 'bg-white' : 'bg-emerald-500') : 'bg-slate-400/50'}"></span>
+            <span>${u}</span>
+          </button>
+        `;
+      }).join('');
+      const nameEl = document.getElementById('activeUserFullname');
+      const activeDot = document.getElementById('nicknameActiveIndicator');
+      const signedIn = isUserSignedIn(activeUser);
+      if (nameEl) {
+        nameEl.textContent = signedIn ? getDisplayName(activeUser) : `${activeUser} (Signed Out)`;
+      }
+      if (activeDot) {
+        if (signedIn) activeDot.classList.remove('hidden');
+        else activeDot.classList.add('hidden');
+      }
+      updateEmailAuthUI();
+    }
+
+    function switchActiveUser(code) {
+      activeUser = code;
+      emailAccount = emailAccountsBySlot[code] || null;
+      safeSetStorage('ssc_activeUser', code);
+      safeSetStorage('ssc_emailAccount', emailAccount ? JSON.stringify(emailAccount) : '');
+      renderUserPills();
+      renderCurrentView();
+    }
+
+    function openNicknameModal() {
+      if (!isUserSignedIn(activeUser)) {
+        showToast('Sign in with your email first to show your active nickname!');
+        openEmailAuthModal();
+        return;
+      }
+      document.getElementById('nicknameTargetCode').textContent = activeUser;
+      document.getElementById('nicknameInput').value = getDisplayName(activeUser);
+      document.getElementById('nicknameModal').classList.remove('hidden');
+    }
+
+    function closeNicknameModal() {
+      document.getElementById('nicknameModal').classList.add('hidden');
+    }
+
+    function handleNicknameSubmit(e) {
+      e.preventDefault();
+      const val = document.getElementById('nicknameInput').value.trim();
+      if (val) {
+        nicknames[activeUser] = val;
+        const acctEmail = (emailAccountsBySlot[activeUser]?.email || '').toLowerCase();
+        if (acctEmail) {
+          savedNicknamesByEmail[acctEmail] = val;
+          safeSetStorage('ssc_savedNicknamesByEmail', JSON.stringify(savedNicknamesByEmail));
+        }
+        persistAllAndSync();
+        renderUserPills();
+        renderCurrentView();
+        closeNicknameModal();
+        showToast(`Nickname active: ${val}`);
+      }
+    }
+
+    function resetNickname() {
+      nicknames[activeUser] = USER_META[activeUser].defaultName;
+      const acctEmail = (emailAccountsBySlot[activeUser]?.email || '').toLowerCase();
+      if (acctEmail) {
+        delete savedNicknamesByEmail[acctEmail];
+        safeSetStorage('ssc_savedNicknamesByEmail', JSON.stringify(savedNicknamesByEmail));
+      }
+      persistAllAndSync();
+      renderUserPills();
+      renderCurrentView();
+      closeNicknameModal();
+    }
+
+    function updateEmailAuthUI() {
+      const btnText = document.getElementById('emailAuthBtnText');
+      const dot = document.getElementById('emailAuthStatusDot');
+      const currentAcct = emailAccountsBySlot[activeUser] || emailAccount;
+      if (!btnText) return;
+      if (currentAcct && currentAcct.email) {
+        btnText.textContent = 'Active';
+        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+      } else {
+        btnText.textContent = 'Sign In';
+        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-slate-400';
+      }
+    }
+
+    function finalizeLoginSession(email, role, typedNick, provider = 'email') {
+      const cleanEmail = email.trim();
+      const lowerEmail = cleanEmail.toLowerCase();
+      emailAccount = { email: cleanEmail, role, provider };
+      emailAccountsBySlot[role] = emailAccount;
+      safeSetStorage('ssc_emailAccount', JSON.stringify(emailAccount));
+      safeSetStorage('ssc_emailAccountsBySlot', JSON.stringify(emailAccountsBySlot));
+
+      const existingNick = savedNicknamesByEmail[lowerEmail] || '';
+      const resolvedNick = typedNick || existingNick;
+      if (resolvedNick) {
+        nicknames[role] = resolvedNick;
+        savedNicknamesByEmail[lowerEmail] = resolvedNick;
+        safeSetStorage('ssc_savedNicknamesByEmail', JSON.stringify(savedNicknamesByEmail));
+      }
+
+      switchActiveUser(role);
+      persistAllAndSync();
+      updateEmailAuthUI();
+      closeEmailAuthModal();
+
+      if (!resolvedNick) {
+        openNicknameModal();
+        showToast(`Signed in (${cleanEmail})! Set your nickname.`);
+      } else {
+        showToast(`Active as ${resolvedNick} (${cleanEmail})`);
+      }
+    }
+
+    window.completeExternalGoogleLogin = function (googleEmail, googleDisplayName = '') {
+      if (!googleEmail) return;
+      finalizeLoginSession(googleEmail, activeUser, googleDisplayName, 'google');
+    };
+
+    function openEmailAuthModal() {
+      const signedInView = document.getElementById('signedInAccountView');
+      const formView = document.getElementById('emailAuthForm');
+      const errEl = document.getElementById('emailAuthErrorText');
+      const currentAcct = emailAccountsBySlot[activeUser];
+      if (errEl) errEl.classList.add('hidden');
+      setEmailAuthMode('signin');
+      if (currentAcct && currentAcct.email) {
+        signedInView.classList.remove('hidden');
+        formView.classList.add('hidden');
+        document.getElementById('signedInEmailLabel').textContent = `${currentAcct.email} • Active`;
+        document.getElementById('signedInRoleBadge').textContent = activeUser;
+      } else {
+        signedInView.classList.add('hidden');
+        formView.classList.remove('hidden');
+      }
+      document.getElementById('emailAuthModal').classList.remove('hidden');
+    }
+
+    function closeEmailAuthModal() {
+      document.getElementById('emailAuthModal').classList.add('hidden');
+    }
+
+    function setEmailAuthMode(mode) {
+      emailAuthMode = mode;
+      const heading = document.getElementById('welcomeAuthHeading');
+      const subBtn = document.getElementById('emailAuthSubmitBtn');
+      const linkBtn = document.getElementById('toggleAuthRegisterLink');
+      const errEl = document.getElementById('emailAuthErrorText');
+      if (errEl) errEl.classList.add('hidden');
+      if (mode === 'signin') {
+        if (heading) heading.textContent = 'Welcome Back';
+        if (subBtn) subBtn.textContent = 'Sign In';
+        if (linkBtn) linkBtn.innerHTML = 'New user? <span class="text-blue-400 font-bold">Create Account</span>';
+      } else {
+        if (heading) heading.textContent = 'Create Account';
+        if (subBtn) subBtn.textContent = 'Create Account';
+        if (linkBtn) linkBtn.innerHTML = 'Already have an account? <span class="text-blue-400 font-bold">Sign In</span>';
+      }
+    }
+
+    async function quickProviderAuth(provider) {
+      const role = activeUser;
+      const errEl = document.getElementById('emailAuthErrorText');
+      if (errEl) errEl.classList.add('hidden');
+
+      if (!/^https?:$/i.test(window.location.protocol)) {
+        if (errEl) {
+          errEl.innerHTML = 'Browser security blocks real website login on local <code>content://</code> / <code>file://</code> files. Open your live site: <a href="https://iamayooj.github.io/ssc/" target="_blank" class="underline text-blue-400 font-bold">https://iamayooj.github.io/ssc/</a>';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (provider === 'google' && window.cloudSyncBridge && typeof window.cloudSyncBridge.signInGoogle === 'function') {
+        try {
+          const cred = await window.cloudSyncBridge.signInGoogle();
+          if (cred && cred.user && cred.user.email) {
+            finalizeLoginSession(cred.user.email, role, cred.user.displayName || '', 'google');
+          }
+        } catch (e) {
+          if (errEl) {
+            errEl.textContent = e && e.code === 'auth/unauthorized-domain'
+              ? 'Domain not authorized in Firebase Auth → Settings → Authorized domains.'
+              : (e && e.message ? e.message : 'Google sign-in was cancelled or failed.');
+            errEl.classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    async function handleEmailAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmailInput').value.trim();
+      const password = document.getElementById('authPasswordInput').value;
+      const role = activeUser;
+      const errEl = document.getElementById('emailAuthErrorText');
+      if (errEl) errEl.classList.add('hidden');
+
+      if (!email || !email.includes('@')) {
+        if (errEl) {
+          errEl.textContent = 'Please enter a valid email address (e.g. yourname@gmail.com).';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (!/^https?:$/i.test(window.location.protocol)) {
+        if (errEl) {
+          errEl.innerHTML = 'Real email/password authentication requires your live HTTPS website (<a href="https://iamayooj.github.io/ssc/" target="_blank" class="underline text-blue-400 font-bold">https://iamayooj.github.io/ssc/</a>).';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      try {
+        if (!window.cloudSyncBridge || typeof window.cloudSyncBridge.signInEmail !== 'function') {
+          throw new Error('Authentication service is still initializing. Try again in a moment.');
+        }
+        const isRegister = emailAuthMode === 'register';
+        const cred = await window.cloudSyncBridge.signInEmail(email, password, isRegister);
+        if (cred && cred.user && cred.user.email) {
+          finalizeLoginSession(cred.user.email, role, cred.user.displayName || '', 'email');
+        }
+      } catch (err) {
+        let msg = 'Authentication failed. Check your email and password.';
+        if (err && err.code === 'auth/user-not-found') msg = 'No account found with this email. Click "Create Account" below.';
+        else if ((err && err.code === 'auth/wrong-password') || (err && err.code === 'auth/invalid-credential')) msg = 'Invalid email or password.';
+        else if (err && err.code === 'auth/email-already-in-use') msg = 'This email is already registered. Switch to Sign In.';
+        else if (err && err.code === 'auth/weak-password') msg = 'Password must be at least 6 characters.';
+        else if (err && err.message) msg = err.message;
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    async function handleEmailSignOut() {
+      const role = activeUser;
+      delete emailAccountsBySlot[role];
+      emailAccount = null;
+      nicknames[role] = USER_META[role] ? USER_META[role].defaultName : role;
+      safeSetStorage('ssc_emailAccountsBySlot', JSON.stringify(emailAccountsBySlot));
+      safeSetStorage('ssc_emailAccount', '');
+      persistAllAndSync();
+      renderUserPills();
+      renderCurrentView();
+      const signedInView = document.getElementById('signedInAccountView');
+      const formView = document.getElementById('emailAuthForm');
+      const emailInp = document.getElementById('authEmailInput');
+      const passInp = document.getElementById('authPasswordInput');
+      if (emailInp) emailInp.value = '';
+      if (passInp) passInp.value = '';
+      if (signedInView) signedInView.classList.add('hidden');
+      if (formView) formView.classList.remove('hidden');
+      setEmailAuthMode('signin');
+      if (window.cloudSyncBridge && typeof window.cloudSyncBridge.signOutEmail === 'function') {
+        try { await window.cloudSyncBridge.signOutEmail(); } catch (e) {}
+      }
+      showToast('Signed out — nickname hidden until next sign in');
+    }
+
+    function updateModeBadgeUI() {
+      const txt = document.getElementById('modeBadgeText');
+      if (!txt) return;
+      if (studyMode === 'self') txt.textContent = 'Self Study';
+      else if (studyMode === 'coaching') txt.textContent = 'Coaching';
+      else if (studyMode === 'library') txt.textContent = selectedLibrary ? selectedLibrary.name.slice(0, 16) : 'Library';
+      else txt.textContent = 'Select Track';
+    }
+
+    function openModeSelector() {
+      document.getElementById('onboardingStep1').classList.remove('hidden');
+      document.getElementById('onboardingStep2').classList.add('hidden');
+      document.getElementById('onboardingStep3').classList.add('hidden');
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+    }
+
+    function backToStep1() {
+      document.getElementById('onboardingStep1').classList.remove('hidden');
+      document.getElementById('onboardingStep2').classList.add('hidden');
+      document.getElementById('onboardingStep3').classList.add('hidden');
+    }
+
+    function selectStudyMode(mode) {
+      if (mode === 'self') {
+        document.getElementById('onboardingStep1').classList.add('hidden');
+        document.getElementById('onboardingStep2').classList.remove('hidden');
+        document.getElementById('ytCh1').value = selfResources.yt[0] || '';
+        document.getElementById('ytCh2').value = selfResources.yt[1] || '';
+        document.getElementById('ytCh3').value = selfResources.yt[2] || '';
+        document.getElementById('ytCh4').value = selfResources.yt[3] || '';
+        document.getElementById('tgCh1').value = selfResources.tg[0] || '';
+        document.getElementById('tgCh2').value = selfResources.tg[1] || '';
+        document.getElementById('tgCh3').value = selfResources.tg[2] || '';
+        document.getElementById('tgCh4').value = selfResources.tg[3] || '';
+      } else if (mode === 'library') {
+        document.getElementById('onboardingStep1').classList.add('hidden');
+        document.getElementById('onboardingStep3').classList.remove('hidden');
+        renderGovtLibraryList(GOVT_LIBRARIES);
+      } else {
+        studyMode = mode;
+        safeSetStorage('ssc_studyMode', mode);
+        updateModeBadgeUI();
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        showToast('Coaching Centre track selected!');
+      }
+    }
+
+    function saveSelfStudyResources(e) {
+      e.preventDefault();
+      selfResources = {
+        yt: [
+          document.getElementById('ytCh1').value.trim(),
+          document.getElementById('ytCh2').value.trim(),
+          document.getElementById('ytCh3').value.trim(),
+          document.getElementById('ytCh4').value.trim()
+        ],
+        tg: [
+          document.getElementById('tgCh1').value.trim(),
+          document.getElementById('tgCh2').value.trim(),
+          document.getElementById('tgCh3').value.trim(),
+          document.getElementById('tgCh4').value.trim()
+        ]
+      };
+      studyMode = 'self';
+      safeSetStorage('ssc_studyMode', 'self');
+      safeSetStorage('ssc_selfResources', JSON.stringify(selfResources));
+      updateModeBadgeUI();
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      showToast('Self Study channels saved!');
+    }
+
+    function renderGovtLibraryList(list) {
+      const container = document.getElementById('govtLibraryList');
+      if (!container) return;
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#121215] text-center text-[11px] text-slate-500">No matching library in list — enter your Govt Library name below!</div>`;
+        return;
+      }
+      container.innerHTML = list.map(lib => `
+        <button type="button" onclick="chooseGovtLibrary('${lib.id}')" class="w-full text-left p-3 rounded-2xl bg-slate-50 dark:bg-[#121215] border border-slate-200/80 dark:border-[#24242c] hover:border-emerald-500 transition-all space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-extrabold text-slate-900 dark:text-white">${lib.name}</span>
+            <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shrink-0">${lib.distanceKm !== undefined ? `${lib.distanceKm.toFixed(1)} km` : lib.type}</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-zinc-400">${lib.city} • ${lib.type} • ${lib.hours}</p>
+        </button>
+      `).join('');
+    }
+
+    function filterLibrariesByCity(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderGovtLibraryList(GOVT_LIBRARIES);
+        return;
+      }
+      const matches = GOVT_LIBRARIES.filter(lib =>
+        lib.name.toLowerCase().includes(q) ||
+        lib.city.toLowerCase().includes(q) ||
+        lib.type.toLowerCase().includes(q)
+      );
+      renderGovtLibraryList(matches);
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const toRad = deg => (deg * Math.PI) / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function sortLibrariesByCoords(latitude, longitude, sourceLabel) {
+      const statusEl = document.getElementById('gpsStatusText');
+      const sorted = GOVT_LIBRARIES.map(lib => ({
+        ...lib,
+        distanceKm: haversineKm(latitude, longitude, lib.lat || 0, lib.lon || 0)
+      })).sort((a, b) => a.distanceKm - b.distanceKm);
+      renderGovtLibraryList(sorted);
+      if (statusEl) {
+        statusEl.textContent = `${sourceLabel}: Nearest is ${sorted[0].name} (${sorted[0].distanceKm.toFixed(1)} km).`;
+      }
+    }
+
+    async function fallbackIPLocationLookup() {
+      const statusEl = document.getElementById('gpsStatusText');
+      try {
+        if (statusEl) statusEl.textContent = 'GPS blocked on local file — detecting city via network...';
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+          const cityTag = data.city ? `Detected ${data.city}` : 'Network location';
+          sortLibrariesByCoords(data.latitude, data.longitude, cityTag);
+          return;
+        }
+      } catch (e) {}
+      if (statusEl) {
+        statusEl.textContent = 'GPS is blocked on offline files. Search your city above or open https://iamayooj.github.io/ssc/ for live GPS.';
+      }
+    }
+
+    function detectNearestLibraries() {
+      const statusEl = document.getElementById('gpsStatusText');
+      if (!navigator.geolocation) {
+        fallbackIPLocationLookup();
+        return;
+      }
+      if (statusEl) statusEl.textContent = 'Locating nearest State Govt / Central Libraries...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sortLibrariesByCoords(pos.coords.latitude, pos.coords.longitude, 'GPS Locked');
+        },
+        () => {
+          fallbackIPLocationLookup();
+        },
+        { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
+      );
+    }
+
+    function chooseGovtLibrary(id) {
+      const found = GOVT_LIBRARIES.find(l => l.id === id);
+      if (!found) return;
+      selectedLibrary = found;
+      studyMode = 'library';
+      safeSetStorage('ssc_studyMode', 'library');
+      safeSetStorage('ssc_selectedLibrary', JSON.stringify(selectedLibrary));
+      updateModeBadgeUI();
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      showToast(`Selected ${found.name}`);
+    }
+
+    function saveCustomLibrary(e) {
+      e.preventDefault();
+      const name = document.getElementById('customLibraryInput').value.trim();
+      if (!name) return;
+      selectedLibrary = { id: 'custom', name, city: 'Local Govt Library', type: 'Govt Library', hours: '09:00 AM - 07:00 PM' };
+      studyMode = 'library';
+      safeSetStorage('ssc_studyMode', 'library');
+      safeSetStorage('ssc_selectedLibrary', JSON.stringify(selectedLibrary));
+      updateModeBadgeUI();
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      showToast(`Selected ${name}`);
+    }
+
+    function checkOnboardingGate() {
+      if (!studyMode) {
+        openModeSelector();
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-[#1a1a1e]';
+      });
+      const activeBtn = document.getElementById(`tabBtn-${tab}`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl transition-all bg-emerald-600 text-white shadow-sm';
+      }
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      const main = document.getElementById('mainContent');
+      if (!main) return;
+      if (currentTab === 'schedule') renderScheduleView(main);
+      else if (currentTab === 'status') renderStatusView(main);
+      else if (currentTab === 'chat') renderChatView(main);
+      else if (currentTab === 'doubt') renderDoubtView(main);
+    }
+
+    function getUserDateSlots(user = activeUser, dateStr = selectedDateStr, initializeIfMissing = false) {
+      if (!schedulesByDate[dateStr]) schedulesByDate[dateStr] = {};
+      if (!Array.isArray(schedulesByDate[dateStr][user])) {
+        if (!initializeIfMissing) {
+          const base = DEFAULT_SCHEDULES[user] || DEFAULT_SCHEDULES.AJ;
+          return JSON.parse(JSON.stringify(base)).map((s, idx) => ({ ...s, id: s.id + idx, done: false }));
+        }
+        const base = DEFAULT_SCHEDULES[user] || DEFAULT_SCHEDULES.AJ;
+        schedulesByDate[dateStr][user] = JSON.parse(JSON.stringify(base)).map((s, idx) => ({
+          ...s,
+          id: Date.now() + idx,
+          done: false
+        }));
+      }
+      return schedulesByDate[dateStr][user];
+    }
+
+    function isUserBreakDay(user = activeUser, dateStr = selectedDateStr) {
+      return !!(breakDaysByDate[dateStr] && breakDaysByDate[dateStr][user]);
+    }
+
+    function formatSelectedDateHeading(dateStr) {
+      const [y, m, d] = (dateStr || '2026-11-22').split('-').map(Number);
+      const dt = new Date(y, (m || 1) - 1, d || 1);
+      const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${weekdays[dt.getDay()]}, ${String(d).padStart(2, '0')} ${months[dt.getMonth()]} ${y}`;
+    }
+
+    function renderScheduleView(container) {
+      const uSched = [...getUserDateSlots(activeUser, selectedDateStr, false)].sort((a, b) => timeToMins(a.start) - timeToMins(b.start));
+      const isBreak = isUserBreakDay(activeUser, selectedDateStr);
+      const calYear = 2026 + Math.floor(calendarMonthIndex / 12);
+      const calMonth = calendarMonthIndex % 12;
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const shortDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const days = [];
+      for (let dNum = 1; dNum <= daysInMonth; dNum++) {
+        const dt = new Date(calYear, calMonth, dNum);
+        const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
+        days.push({ day: shortDays[dt.getDay()], num: String(dNum).padStart(2, '0'), date: iso });
+      }
+
+      let totalMins = 0, doneCount = 0;
+      const subjMins = { GA: 0, QA: 0, EN: 0, RA: 0 };
+      uSched.forEach(s => {
+        const d = getSlotDurationMins(s);
+        totalMins += d;
+        if (s.done) doneCount++;
+        if (subjMins[s.subject] !== undefined) subjMins[s.subject] += d;
+      });
+      const totalHrs = (totalMins / 60).toFixed(1);
+      const donePct = uSched.length ? Math.round((doneCount / uSched.length) * 100) : 0;
+
+      const pct = {
+        GA: totalMins > 0 ? Math.round((subjMins.GA / totalMins) * 100) : 0,
+        QA: totalMins > 0 ? Math.round((subjMins.QA / totalMins) * 100) : 0,
+        EN: totalMins > 0 ? Math.round((subjMins.EN / totalMins) * 100) : 0,
+        RA: totalMins > 0 ? Math.round((subjMins.RA / totalMins) * 100) : 0
+      };
+
+      const weakestKey = ['GA', 'QA', 'EN', 'RA'].reduce((a, b) => subjMins[a] <= subjMins[b] ? a : b);
+      const weakestName = SUBJECT_CONFIG[weakestKey].name;
+      const weakestHrs = (subjMins[weakestKey] / 60).toFixed(1);
+
+      container.innerHTML = `
+        <div class="bg-white dark:bg-[#121215] rounded-[26px] border border-slate-200/80 dark:border-[#24242c] p-3.5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5 text-xs font-extrabold text-slate-800 dark:text-white">
+              <button onclick="shiftCalendarMonth(-1)" class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-[#1a1a1e] text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-[#24242c] flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[9px]"></i></button>
+              <select onchange="setCalendarMonth(this.value)" class="bg-transparent font-extrabold text-xs text-slate-800 dark:text-white focus:outline-none cursor-pointer">
+                ${Array.from({ length: 24 }, (_, idx) => {
+                  const y = 2026 + Math.floor(idx / 12);
+                  const m = idx % 12;
+                  return `<option value="${idx}" ${idx === calendarMonthIndex ? 'selected' : ''} class="bg-white dark:bg-[#121215] text-slate-900 dark:text-white">${monthNames[m]} ${y}</option>`;
+                }).join('')}
+              </select>
+              <button onclick="shiftCalendarMonth(1)" class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-[#1a1a1e] text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-[#24242c] flex items-center justify-center"><i class="fa-solid fa-chevron-right text-[9px]"></i></button>
+            </div>
+            <button onclick="jumpToTodayCalendar()" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold transition-all ${selectedDateStr === '2026-11-22' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'}">Today</button>
+          </div>
+          <div id="calendarDayStrip" class="flex items-center space-x-1.5 overflow-x-auto pb-1 custom-scroll text-center">
+            ${days.map(d => {
+              const isSel = d.date === selectedDateStr;
+              const hasCustom = !!(schedulesByDate[d.date] && Array.isArray(schedulesByDate[d.date][activeUser]));
+              return `<button id="cal-day-${d.date}" onclick="selectScheduleDate('${d.date}')" class="min-w-[40px] py-2 rounded-2xl flex flex-col items-center justify-center shrink-0 transition-all ${isSel ? 'bg-emerald-600 text-white shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-[#1a1a1e] text-slate-600 dark:text-zinc-400'}"><span class="text-[8px] font-bold opacity-80">${d.day}</span><span class="text-xs font-extrabold mt-0.5">${d.num}</span><span class="w-1 h-1 rounded-full mt-1 ${isSel ? 'bg-white' : (hasCustom ? 'bg-emerald-500' : 'bg-emerald-500/30')}"></span></button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-3.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">${formatSelectedDateHeading(selectedDateStr)}</h2>
+              <p class="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 mt-0.5">${doneCount}/${uSched.length} completed (${donePct}%) • ${totalHrs} hrs</p>
+            </div>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="toggleBreakDay()" class="px-2.5 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all flex items-center space-x-1 ${isBreak ? 'bg-amber-500 text-white border-amber-500' : 'bg-slate-50 dark:bg-[#1a1a1e] text-slate-600 dark:text-zinc-300 border-slate-200/80 dark:border-[#2b2b34]'}"><i class="fa-solid fa-mug-hot text-[9px]"></i><span>Break Day</span></button>
+              <button onclick="resetDefaultSchedule()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-900/50 text-[10px] font-extrabold flex items-center space-x-1"><i class="fa-solid fa-rotate-left text-[9px]"></i><span>Default</span></button>
+            </div>
+          </div>
+
+          ${isBreak ? `
+            <div class="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 text-center space-y-1">
+              <p class="text-xs font-extrabold text-amber-800 dark:text-amber-300">Rest & Recovery Day Active</p>
+              <p class="text-[11px] text-amber-700/80 dark:text-amber-400/80">Take a break, revise short flashcards, and recharge for tomorrow.</p>
+            </div>
+          ` : `
+            <div class="space-y-2.5">
+              ${uSched.map(slot => {
+                const cfg = SUBJECT_CONFIG[slot.subject] || SUBJECT_CONFIG.GA;
+                const durHrs = (getSlotDurationMins(slot) / 60).toFixed(1);
+                const live = isSlotLiveNow(slot);
+                return `
+                  <div class="p-3 rounded-2xl border transition-all ${slot.done ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-900/40 opacity-85' : 'bg-slate-50/90 dark:bg-[#18181c] border-slate-200/70 dark:border-[#26262e]'} space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center space-x-2.5 min-w-0">
+                        <button onclick="toggleSlotDone(${slot.id})" class="w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${slot.done ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-zinc-600 bg-white dark:bg-[#121215]'}">
+                          ${slot.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+                        </button>
+                        <select onchange="changeSlotSubject(${slot.id}, this.value)" class="text-[10px] font-black px-2 py-0.5 rounded-lg border-0 focus:ring-1 focus:ring-emerald-500 cursor-pointer ${cfg.badge}">
+                          ${['GA', 'QA', 'EN', 'RA'].map(code => `<option value="${code}" ${slot.subject === code ? 'selected' : ''}>${code}</option>`).join('')}
+                        </select>
+                        <span class="text-[11px] font-bold text-slate-600 dark:text-zinc-300 tabular-nums truncate">${formatTime12(slot.start)} - ${formatTime12(slot.end)}</span>
+                      </div>
+                      <div class="flex items-center space-x-1.5 shrink-0">
+                        ${live ? '<span class="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[8px] font-black uppercase animate-pulse">Live</span>' : ''}
+                        <span class="text-[10px] font-extrabold text-slate-400">${durHrs}h</span>
+                        <button onclick="deleteScheduleSlot(${slot.id})" class="w-6 h-6 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition-colors"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                      </div>
+                    </div>
+                    <input type="text" value="${slot.topic.replace(/"/g, '&quot;')}" onchange="updateSlotTopic(${slot.id}, this.value)" class="w-full bg-transparent text-xs font-bold ${slot.done ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-800 dark:text-zinc-100'} focus:outline-none focus:bg-white dark:focus:bg-[#121215] rounded-lg px-1.5 py-0.5" />
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+
+          <button onclick="openAddSlotModal()" class="w-full py-2.5 rounded-2xl border border-dashed border-emerald-400/70 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add 1+ Hour Study Slot</span>
+          </button>
+        </div>
+
+        <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-3.5 overflow-hidden">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 min-w-0">
+              <div class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-scale-balanced text-xs"></i>
+              </div>
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-300 truncate">Study Balance Analysis</span>
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-white shrink-0">${totalHrs} hrs planned</span>
+          </div>
+
+          <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-[#1f1f24] overflow-hidden flex">
+            <div style="width: ${pct.GA}%" class="bg-amber-500 h-full transition-all"></div>
+            <div style="width: ${pct.QA}%" class="bg-blue-500 h-full transition-all"></div>
+            <div style="width: ${pct.EN}%" class="bg-emerald-500 h-full transition-all"></div>
+            <div style="width: ${pct.RA}%" class="bg-violet-500 h-full transition-all"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            ${['GA', 'QA', 'EN', 'RA'].map(k => {
+              const cfg = SUBJECT_CONFIG[k];
+              const hrs = (subjMins[k] / 60).toFixed(1);
+              return `
+                <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-[#18181c] border border-slate-200/70 dark:border-[#26262e] flex items-center justify-between gap-1.5 min-w-0">
+                  <div class="flex items-center space-x-1.5 min-w-0">
+                    <span class="w-2 h-2 rounded-full ${cfg.dot} shrink-0"></span>
+                    <span class="text-[11px] font-bold text-slate-700 dark:text-zinc-200 truncate">${k} (${hrs}h)</span>
+                  </div>
+                  <span class="text-[11px] font-black text-slate-900 dark:text-white shrink-0">${pct[k]}%</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 flex items-start space-x-2 text-[11px] text-amber-800 dark:text-amber-300 font-semibold leading-snug">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0"></i>
+            <span>Low focus on <strong>${weakestName} (${weakestHrs}h)</strong>. Consider adding a 1-hour slot.</span>
+          </div>
+        </div>
+      `;
+
+      const selectedPill = document.getElementById(`cal-day-${selectedDateStr}`);
+      if (selectedPill) {
+        selectedPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
+    function selectScheduleDate(dateStr) { selectedDateStr = dateStr; renderCurrentView(); }
+    function shiftCalendarMonth(delta) {
+      calendarMonthIndex = Math.max(0, Math.min(23, calendarMonthIndex + delta));
+      const y = 2026 + Math.floor(calendarMonthIndex / 12);
+      const m = calendarMonthIndex % 12;
+      selectedDateStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      renderCurrentView();
+    }
+    function setCalendarMonth(idx) {
+      calendarMonthIndex = Math.max(0, Math.min(23, parseInt(idx, 10) || 0));
+      const y = 2026 + Math.floor(calendarMonthIndex / 12);
+      const m = calendarMonthIndex % 12;
+      selectedDateStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      renderCurrentView();
+    }
+    function jumpToTodayCalendar() {
+      calendarMonthIndex = 10;
+      selectedDateStr = '2026-11-22';
+      renderCurrentView();
+      requestAnimationFrame(() => {
+        const todayEl = document.getElementById('cal-day-2026-11-22');
+        if (todayEl) todayEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
+    }
+    function toggleBreakDay() {
+      if (!breakDaysByDate[selectedDateStr]) breakDaysByDate[selectedDateStr] = {};
+      breakDaysByDate[selectedDateStr][activeUser] = !isUserBreakDay(activeUser, selectedDateStr);
+      persistAllAndSync();
+      renderCurrentView();
+    }
+    function resetDefaultSchedule() {
+      if (!schedulesByDate[selectedDateStr]) schedulesByDate[selectedDateStr] = {};
+      const base = DEFAULT_SCHEDULES[activeUser] || DEFAULT_SCHEDULES.AJ;
+      schedulesByDate[selectedDateStr][activeUser] = JSON.parse(JSON.stringify(base)).map((s, idx) => ({
+        ...s,
+        id: Date.now() + idx,
+        done: false
+      }));
+      if (!breakDaysByDate[selectedDateStr]) breakDaysByDate[selectedDateStr] = {};
+      breakDaysByDate[selectedDateStr][activeUser] = false;
+      persistAllAndSync();
+      renderCurrentView();
+      showToast(`Restored default schedule for ${selectedDateStr}`);
+    }
+    function toggleSlotDone(id) {
+      const list = getUserDateSlots(activeUser, selectedDateStr, true);
+      const item = list.find(s => s.id === id);
+      if (item) { item.done = !item.done; persistAllAndSync(); renderCurrentView(); }
+    }
+    function changeSlotSubject(id, newSubj) {
+      const list = getUserDateSlots(activeUser, selectedDateStr, true);
+      const item = list.find(s => s.id === id);
+      if (item) { item.subject = newSubj; persistAllAndSync(); renderCurrentView(); }
+    }
+    function updateSlotTopic(id, newTopic) {
+      const list = getUserDateSlots(activeUser, selectedDateStr, true);
+      const item = list.find(s => s.id === id);
+      if (item && newTopic.trim()) { item.topic = newTopic.trim(); persistAllAndSync(); }
+    }
+    function deleteScheduleSlot(id) {
+      const list = getUserDateSlots(activeUser, selectedDateStr, true);
+      schedulesByDate[selectedDateStr][activeUser] = list.filter(s => s.id !== id);
+      persistAllAndSync();
+      renderCurrentView();
+      showToast('Study slot removed from this date');
+    }
+    function openAddSlotModal() { document.getElementById('addSlotModal').classList.remove('hidden'); }
+    function closeAddSlotModal() { document.getElementById('addSlotModal').classList.add('hidden'); }
+
+    function handleSlotSubmit(e) {
+      e.preventDefault();
+      const subject = document.getElementById('slotSubject').value;
+      const type = document.getElementById('slotCategory').value;
+      const start = document.getElementById('slotStart').value;
+      const end = document.getElementById('slotEnd').value;
+      const topic = document.getElementById('slotTopic').value.trim();
+      const durMins = getSlotDurationMins({ start, end });
+      if (durMins < 60) { showToast('Minimum study slot duration must be 1 hour (60 minutes).'); return; }
+      const list = getUserDateSlots(activeUser, selectedDateStr, true);
+      list.push({ id: Date.now(), subject, start, end, topic, done: false, type });
+      document.getElementById('slotTopic').value = '';
+      closeAddSlotModal();
+      persistAllAndSync();
+      renderCurrentView();
+      showToast(`Added ${(durMins / 60).toFixed(1)}h ${subject} slot for ${selectedDateStr}!`);
+    }
+
+    function renderStatusView(container) {
+      container.innerHTML = `
+        <div class="grid grid-cols-3 gap-1.5 bg-white dark:bg-[#121215] p-1.5 rounded-2xl border border-slate-200/80 dark:border-[#24242c] shadow-xs">
+          <button onclick="switchStatusSubTab('hours')" class="py-2 rounded-xl text-xs font-extrabold transition-all ${statusSubTab === 'hours' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400'}">Study Hours</button>
+          <button onclick="switchStatusSubTab('mocks')" class="py-2 rounded-xl text-xs font-extrabold transition-all ${statusSubTab === 'mocks' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400'}">Mock Tests</button>
+          <button onclick="switchStatusSubTab('screentime')" class="py-2 rounded-xl text-xs font-extrabold transition-all ${statusSubTab === 'screentime' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400'}">Screen Time</button>
+        </div>
+        <div id="statusSubContent" class="space-y-4"></div>
+      `;
+      const subEl = document.getElementById('statusSubContent');
+      if (statusSubTab === 'hours') renderStudyHoursSubView(subEl);
+      else if (statusSubTab === 'mocks') renderMockAnalysisSubView(subEl);
+      else renderScreenTimeSubView(subEl);
+    }
+
+    function switchStatusSubTab(sub) { statusSubTab = sub; renderCurrentView(); }
+
+    function renderStudyHoursSubView(el) {
+      const stats = USERS.map(u => {
+        const list = getUserDateSlots(u, selectedDateStr, false);
+        let totalMins = 0, doneMins = 0;
+        const bySubj = { GA: 0, QA: 0, EN: 0, RA: 0 };
+        list.forEach(s => {
+          const d = getSlotDurationMins(s);
+          totalMins += d;
+          if (s.done) doneMins += d;
+          if (bySubj[s.subject] !== undefined) bySubj[s.subject] += d;
+        });
+        return { user: u, name: getDisplayName(u), totalHrs: (totalMins / 60).toFixed(1), doneHrs: (doneMins / 60).toFixed(1), bySubj };
+      }).sort((a, b) => parseFloat(b.totalHrs) - parseFloat(a.totalHrs));
+
+      el.innerHTML = `
+        <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Squad Study Leaderboard</h3>
+            <span class="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full">AJ vs NR</span>
+          </div>
+          <div class="space-y-3">
+            ${stats.map((st, idx) => `
+              <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#18181c] border border-slate-200/70 dark:border-[#26262e] space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-full ${USER_META[st.user].color} text-white font-black text-xs flex items-center justify-center shrink-0">${st.user}</div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${st.name} ${idx === 0 ? '👑' : ''}</p>
+                      <p class="text-[10px] text-slate-500 dark:text-zinc-400">Completed: ${st.doneHrs}h / ${st.totalHrs}h</p>
+                    </div>
+                  </div>
+                  <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 shrink-0">${st.totalHrs} hrs</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 text-center">
+                  ${['GA', 'QA', 'EN', 'RA'].map(k => `<div class="py-1.5 rounded-xl bg-white dark:bg-[#121215] border border-slate-200/60 dark:border-[#26262e]"><p class="text-[9px] font-bold text-slate-400">${k}</p><p class="text-[11px] font-extrabold text-slate-800 dark:text-zinc-200">${(st.bySubj[k] / 60).toFixed(1)}h</p></div>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMockAnalysisSubView(el) {
+      const filtered = mockPlatformFilter === 'ALL' ? mocks : mocks.filter(m => m.platform === mockPlatformFilter);
+      const tbMocks = mocks.filter(m => m.platform === 'Testbook');
+      const obMocks = mocks.filter(m => m.platform === 'Oliveboard');
+      const avg = (arr, field) => arr.length ? (arr.reduce((sum, x) => sum + Number(x[field] || 0), 0) / arr.length).toFixed(1) : '--';
+
+      el.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center space-x-1.5">
+            ${['ALL', 'Testbook', 'Oliveboard'].map(p => `<button onclick="setMockPlatformFilter('${p}')" class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition-all ${mockPlatformFilter === p ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-[#121215] text-slate-600 dark:text-zinc-300 border border-slate-200/80 dark:border-[#24242c]'}">${p === 'ALL' ? 'All Mocks' : p}</button>`).join('')}
+          </div>
+          <button onclick="openAddMockModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-extrabold flex items-center space-x-1 shadow-xs shrink-0"><i class="fa-solid fa-plus text-[9px]"></i><span>Log Score</span></button>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#24242c] p-3.5 space-y-1">
+            <span class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">Testbook Avg</span>
+            <p class="text-lg font-black text-slate-900 dark:text-white">${avg(tbMocks, 'score')} <span class="text-xs font-bold text-slate-400">/200</span></p>
+            <p class="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">${avg(tbMocks, 'percentile')}%ile • ${avg(tbMocks, 'accuracy')}% Acc</p>
+          </div>
+          <div class="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#24242c] p-3.5 space-y-1">
+            <span class="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Oliveboard Avg</span>
+            <p class="text-lg font-black text-slate-900 dark:text-white">${avg(obMocks, 'score')} <span class="text-xs font-bold text-slate-400">/200</span></p>
+            <p class="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">${avg(obMocks, 'percentile')}%ile • ${avg(obMocks, 'accuracy')}% Acc</p>
+          </div>
+        </div>
+        <div class="space-y-2.5">
+          ${filtered.map(m => `
+            <div class="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#24242c] p-3.5 space-y-2.5 shadow-xs">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                  <div class="w-8 h-8 rounded-full ${USER_META[m.user] ? USER_META[m.user].color : 'bg-slate-600'} text-white font-black text-xs flex items-center justify-center shrink-0">${m.user}</div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${m.name}</p>
+                    <div class="flex items-center space-x-1.5 mt-0.5">
+                      <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${m.platform === 'Testbook' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'}">${m.platform}</span>
+                      <span class="text-[10px] text-slate-400 truncate">${getDisplayName(m.user)} • ${m.date}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right shrink-0">
+                  <p class="text-sm font-black text-slate-900 dark:text-white">${m.score}</p>
+                  <p class="text-[9px] font-bold text-slate-400">/ 200</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-[#24242c] text-[11px]">
+                <div class="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 font-bold"><i class="fa-solid fa-chart-line text-[10px] shrink-0"></i><span>Percentile: ${m.percentile}%</span></div>
+                <div class="inline-flex items-center justify-end space-x-1 text-emerald-600 dark:text-emerald-400 font-bold"><i class="fa-solid fa-bullseye text-[10px] shrink-0"></i><span>Accuracy: ${m.accuracy}%</span></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function setMockPlatformFilter(p) { mockPlatformFilter = p; renderCurrentView(); }
+    function openAddMockModal() { document.getElementById('addMockModal').classList.remove('hidden'); }
+    function closeAddMockModal() { document.getElementById('addMockModal').classList.add('hidden'); }
+
+    function handleMockSubmit(e) {
+      e.preventDefault();
+      const platform = document.getElementById('mockPlatform').value;
+      const name = document.getElementById('mockName').value.trim();
+      const score = parseFloat(document.getElementById('mockScore').value) || 0;
+      const percentile = parseFloat(document.getElementById('mockPercentile').value) || 0;
+      const accuracy = parseFloat(document.getElementById('mockAccuracy').value) || 0;
+      mocks.unshift({ id: Date.now(), user: activeUser, platform, name, score, percentile, accuracy, date: 'Today' });
+      document.getElementById('mockName').value = '';
+      closeAddMockModal();
+      persistAllAndSync();
+      renderCurrentView();
+      showToast(`Logged ${score}/200 on ${platform}`);
+    }
+
+    function renderScreenTimeSubView(el) {
+      const st = screenTimeData[activeUser] || { mobileMins: 140, laptopMins: 200, appSecs: 0, mobileIp: '', laptopIp: '', connected: false, lastPing: '' };
+      const appMins = Math.round((st.appSecs || 0) / 60);
+      const totalDeviceMins = (st.mobileMins || 0) + (st.laptopMins || 0) + appMins;
+      const mobilePct = totalDeviceMins > 0 ? Math.round(((st.mobileMins || 0) / totalDeviceMins) * 100) : 50;
+      const laptopPct = totalDeviceMins > 0 ? Math.round((((st.laptopMins || 0) + appMins) / totalDeviceMins) * 100) : 50;
+
+      el.innerHTML = `
+        <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center"><i class="fa-solid fa-wifi text-xs"></i></div>
+              <div>
+                <h3 class="text-xs font-extrabold text-slate-900 dark:text-white">Connect Your Devices (IP Sync)</h3>
+                <p class="text-[10px] text-slate-500 dark:text-zinc-400">Pair Mobile & Laptop IP to track live screen time</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-black ${st.connected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">${st.connected ? 'Paired Live' : 'Not Paired'}</span>
+          </div>
+          <form onsubmit="connectDeviceIPs(event)" class="space-y-2.5">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">Mobile IP Address</label>
+                <input type="text" id="mobileIpInput" value="${st.mobileIp || ''}" placeholder="e.g. 192.168.1.12" class="w-full bg-slate-100 dark:bg-[#1a1a1e] rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 dark:text-white" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">Laptop IP Address</label>
+                <input type="text" id="laptopIpInput" value="${st.laptopIp || ''}" placeholder="e.g. 192.168.1.15" class="w-full bg-slate-100 dark:bg-[#1a1a1e] rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 dark:text-white" />
+              </div>
+            </div>
+            <div class="flex space-x-2">
+              <button type="button" onclick="autoDetectCurrentIP()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1f1f24] text-slate-700 dark:text-zinc-200 text-[11px] font-extrabold hover:bg-slate-200">Auto Detect IP</button>
+              <button type="submit" class="flex-1 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold shadow-xs">${st.connected ? 'Update Device Pair' : 'Connect Devices'}</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-extrabold text-slate-900 dark:text-white">Device Screen Time vs This App</h3>
+            <span id="liveAppSessionDisplay" class="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">${formatSecsToHMS(st.appSecs || 0)}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-[#18181c] border border-slate-200/70 dark:border-[#26262e]">
+              <i class="fa-solid fa-mobile-screen text-blue-500 text-xs mb-1"></i>
+              <p class="text-xs font-black text-slate-900 dark:text-white">${((st.mobileMins || 0) / 60).toFixed(1)}h</p>
+              <p class="text-[9px] font-bold text-slate-400">Mobile (${mobilePct}%)</p>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-[#18181c] border border-slate-200/70 dark:border-[#26262e]">
+              <i class="fa-solid fa-laptop text-violet-500 text-xs mb-1"></i>
+              <p class="text-xs font-black text-slate-900 dark:text-white">${(((st.laptopMins || 0) + appMins) / 60).toFixed(1)}h</p>
+              <p class="text-[9px] font-bold text-slate-400">Laptop (${laptopPct}%)</p>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/50">
+              <i class="fa-solid fa-stopwatch text-emerald-600 text-xs mb-1"></i>
+              <p class="text-xs font-black text-emerald-700 dark:text-emerald-300">${appMins}m</p>
+              <p class="text-[9px] font-bold text-emerald-600/80">In Planner</p>
+            </div>
+          </div>
+          <form onsubmit="updateDeviceScreenTime(event)" class="grid grid-cols-2 gap-2 pt-1">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 mb-1">Log Mobile (mins)</label>
+              <input type="number" id="mobileMinsInput" value="${st.mobileMins || 0}" min="0" class="w-full bg-slate-100 dark:bg-[#1a1a1e] rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 dark:text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 mb-1">Log Laptop (mins)</label>
+              <input type="number" id="laptopMinsInput" value="${st.laptopMins || 0}" min="0" class="w-full bg-slate-100 dark:bg-[#1a1a1e] rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 dark:text-white" />
+            </div>
+            <button type="submit" class="col-span-2 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-extrabold">Update Screen Time Log</button>
+          </form>
+        </div>
+      `;
+    }
+
+    async function autoDetectCurrentIP() {
+      try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        if (data && data.ip) {
+          const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+          const targetInput = document.getElementById(isMobile ? 'mobileIpInput' : 'laptopIpInput');
+          if (targetInput) targetInput.value = data.ip;
+          showToast(`Detected ${isMobile ? 'Mobile' : 'Laptop'} IP: ${data.ip}`);
+        }
+      } catch (e) { showToast('Could not auto-fetch public IP; enter local IP manually.'); }
+    }
+
+    function connectDeviceIPs(e) {
+      e.preventDefault();
+      const mobileIp = document.getElementById('mobileIpInput').value.trim();
+      const laptopIp = document.getElementById('laptopIpInput').value.trim();
+      if (!screenTimeData[activeUser]) screenTimeData[activeUser] = { mobileMins: 120, laptopMins: 180, appSecs: 0 };
+      screenTimeData[activeUser].mobileIp = mobileIp;
+      screenTimeData[activeUser].laptopIp = laptopIp;
+      screenTimeData[activeUser].connected = !!(mobileIp || laptopIp);
+      screenTimeData[activeUser].lastPing = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      persistAllAndSync();
+      renderCurrentView();
+      showToast('Device IP pairing saved!');
+    }
+
+    function updateDeviceScreenTime(e) {
+      e.preventDefault();
+      const m = parseInt(document.getElementById('mobileMinsInput').value, 10) || 0;
+      const l = parseInt(document.getElementById('laptopMinsInput').value, 10) || 0;
+      if (!screenTimeData[activeUser]) screenTimeData[activeUser] = { mobileMins: 0, laptopMins: 0, appSecs: 0 };
+      screenTimeData[activeUser].mobileMins = m;
+      screenTimeData[activeUser].laptopMins = l;
+      persistAllAndSync();
+      renderCurrentView();
+      showToast('Screen time stats updated!');
+    }
+
+    function renderChatView(container) {
+      container.innerHTML = `
+        <div class="flex flex-col h-full space-y-3">
+          <div class="bg-white dark:bg-[#121215] rounded-[28px] border border-slate-200/80 dark:border-[#24242c] p-4 flex-1 overflow-y-auto space-y-3 min-h-[340px]">
+            ${chats.map(c => {
+              const isMe = c.user === activeUser;
+              return `
+                <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                  <div class="max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs ${isMe ? 'bg-emerald-600 text-white rounded-br-none' : 'bg-slate-100 dark:bg-[#1a1a1e] text-slate-800 dark:text-zinc-100 rounded-bl-none'}">
+                    <div class="flex items-center justify-between space-x-3 text-[9px] opacity-75 font-bold mb-1">
+                      <span>${getDisplayName(c.user)}</span>
+                      <span>${c.time}</span>
+                    </div>
+                    <p class="leading-relaxed font-medium">${c.text}</p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <form onsubmit="handleChatSubmit(event)" class="flex items-center space-x-2">
+            <input type="text" id="chatMsgInput" required placeholder="Message as ${getDisplayName(activeUser)}..." class="flex-1 bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#24242c] rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500" />
+            <button type="submit" class="w-11 h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-sm shrink-0"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+          </form>
+        </div>
+      `;
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatMsgInput');
+      const text = input.value.trim();
+      if (!text) return;
+      chats.push({ id: Date.now(), user: activeUser, text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      input.value = '';
+      persistAllAndSync();
+      renderCurrentView();
+    }
+
+    function renderDoubtView(container) {
+      const filtered = doubtFilter === 'ALL' ? doubts : doubts.filter(d => doubtFilter === 'SOLVED' ? d.solved : !d.solved);
+      container.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center space-x-1.5">
+            ${['ALL', 'UNSOLVED', 'SOLVED'].map(f => `<button onclick="setDoubtFilter('${f}')" class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition-all ${doubtFilter === f ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-[#121215] text-slate-600 dark:text-zinc-300 border border-slate-200/80 dark:border-[#24242c]'}">${f === 'ALL' ? 'All' : f === 'UNSOLVED' ? 'Pending' : 'Solved'}</button>`).join('')}
+          </div>
+          <button onclick="openAddDoubtModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-[11px] font-extrabold flex items-center space-x-1 shadow-xs"><i class="fa-solid fa-plus text-[9px]"></i><span>Ask Doubt</span></button>
+        </div>
+        <div class="space-y-3">
+          ${filtered.map(d => `
+            <div class="bg-white dark:bg-[#121215] rounded-[26px] border border-slate-200/80 dark:border-[#24242c] p-4 shadow-xs space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">${d.subject} • ${getDisplayName(d.user)}</span>
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${d.solved ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">${d.solved ? `Solved by ${getDisplayName(d.solvedBy)}` : 'Pending'}</span>
+              </div>
+              <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">${d.title}</h4>
+              <p class="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">${d.detail}</p>
+              ${d.img ? `<img src="${d.img}" class="rounded-2xl max-h-40 w-full object-cover border border-slate-200 dark:border-[#24242c]" alt="Doubt attachment" />` : ''}
+              <div class="space-y-1.5 pt-1">
+                ${(d.replies || []).map(r => `<div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#18181c] text-xs"><span class="font-extrabold text-emerald-600 dark:text-emerald-400">${getDisplayName(r.user)}:</span><span class="text-slate-700 dark:text-zinc-200 ml-1">${r.text}</span></div>`).join('')}
+              </div>
+              <div class="flex items-center space-x-2 pt-1">
+                <input type="text" id="doubtReply-${d.id}" placeholder="Write solution..." class="flex-1 bg-slate-100 dark:bg-[#1a1a1e] rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 dark:text-white" />
+                <button onclick="replyDoubt(${d.id})" class="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-extrabold">Reply</button>
+                ${!d.solved ? `<button onclick="solveDoubt(${d.id})" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-extrabold">Solve</button>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function setDoubtFilter(f) { doubtFilter = f; renderCurrentView(); }
+    function openAddDoubtModal() { document.getElementById('addDoubtModal').classList.remove('hidden'); }
+    function closeAddDoubtModal() { document.getElementById('addDoubtModal').classList.add('hidden'); }
+
+    function handleDoubtSubmit(e) {
+      e.preventDefault();
+      const subject = document.getElementById('doubtSubject').value;
+      const title = document.getElementById('doubtTitle').value.trim();
+      const detail = document.getElementById('doubtDetail').value.trim();
+      const fileInput = document.getElementById('doubtImageFile');
+      const finishSave = (imgData) => {
+        doubts.unshift({ id: Date.now(), user: activeUser, subject, title, detail, img: imgData || '', solved: false, solvedBy: null, replies: [] });
+        document.getElementById('doubtTitle').value = '';
+        document.getElementById('doubtDetail').value = '';
+        if (fileInput) fileInput.value = '';
+        closeAddDoubtModal();
+        persistAllAndSync();
+        renderCurrentView();
+        showToast('Doubt posted to squad!');
+      };
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (ev) => finishSave(ev.target.result);
+        reader.readAsDataURL(fileInput.files[0]);
+      } else { finishSave(''); }
+    }
+
+    function replyDoubt(id) {
+      const input = document.getElementById(`doubtReply-${id}`);
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+      const d = doubts.find(x => x.id === id);
+      if (d) { if (!d.replies) d.replies = []; d.replies.push({ user: activeUser, text }); persistAllAndSync(); renderCurrentView(); }
+    }
+
+    function solveDoubt(id) {
+      const d = doubts.find(x => x.id === id);
+      if (d) { d.solved = true; d.solvedBy = activeUser; persistAllAndSync(); renderCurrentView(); showToast('Marked as solved!'); }
+    }
+
+    window.onload = function () {
+      if (emailAccount && emailAccount.email && !emailAccountsBySlot[emailAccount.role || activeUser]) {
+        emailAccountsBySlot[emailAccount.role || activeUser] = emailAccount;
+        safeSetStorage('ssc_emailAccountsBySlot', JSON.stringify(emailAccountsBySlot));
+      }
+      initTheme();
+      startLiveClock();
+      startAppUsageTracker();
+      renderUserPills();
+      updateModeBadgeUI();
+      updateEmailAuthUI();
+      checkOnboardingGate();
+      switchTab('schedule');
+    };
+  </script>
+</body>
+</html>
